@@ -16,9 +16,9 @@ local os     = { getenv = os.getenv }
 local theme                                     = {}
 theme.default_dir                               = require("awful.util").get_themes_dir() .. "default"
 theme.icon_dir                                  = os.getenv("HOME") .. "/.config/awesome/themes/holo/icons"
-theme.wallpaper                                 = os.getenv("HOME") .. "/.config/awesome/themes/holo/wall.png"
-theme.font                                      = "Roboto Bold 10"
-theme.taglist_font                              = "Roboto Condensed Regular 8"
+theme.wallpaper                                 = os.getenv("HOME") .. "/.config/awesome/themes/holo/wall.jpg"
+theme.font                                      = "Tamsyn 10"
+theme.taglist_font                              = "Tamsyn 8"
 theme.fg_normal                                 = "#FFFFFF"
 theme.fg_focus                                  = "#0099CC"
 theme.bg_focus                                  = "#303030"
@@ -55,6 +55,8 @@ theme.play                                      = theme.icon_dir .. "/play.png"
 theme.clock                                     = theme.icon_dir .. "/clock.png"
 theme.calendar                                  = theme.icon_dir .. "/cal.png"
 theme.cpu                                       = theme.icon_dir .. "/cpu.png"
+theme.mem                                       = theme.icon_dir .. "/mem.png"
+theme.hdd                                       = theme.icon_dir .. "/hdd.png"
 theme.net_up                                    = theme.icon_dir .. "/net_up.png"
 theme.net_down                                  = theme.icon_dir .. "/net_down.png"
 theme.layout_tile                               = theme.icon_dir .. "/tile.png"
@@ -97,27 +99,28 @@ theme.musicplr = string.format("%s -e ncmpcpp", awful.util.terminal)
 
 local markup = lain.util.markup
 local blue   = "#80CCE6"
-local space3 = markup.font("Roboto 3", " ")
+local space3 = markup.font("Tamsyn 3", " ")
 
 -- Clock
-local mytextclock = wibox.widget.textclock(markup("#FFFFFF", space3 .. "%H:%M   " .. markup.font("Roboto 4", " ")))
+local mytextclock = wibox.widget.textclock(markup("#FFFFFF", space3 .. "%H:%M   " .. markup.font("Tamsyn 4", " ")))
 mytextclock.font = theme.font
 local clock_icon = wibox.widget.imagebox(theme.clock)
 local clockbg = wibox.container.background(mytextclock, theme.bg_focus, gears.shape.rectangle)
 local clockwidget = wibox.container.margin(clockbg, 0, 3, 5, 5)
 
 -- Calendar
-local mytextcalendar = wibox.widget.textclock(markup.fontfg(theme.font, "#FFFFFF", space3 .. "%d %b " .. markup.font("Roboto 5", " ")))
-local calendar_icon = wibox.widget.imagebox(theme.calendar)
+local mytextcalendar = wibox.widget.imagebox(theme.calendar)
 local calbg = wibox.container.background(mytextcalendar, theme.bg_focus, gears.shape.rectangle)
 local calendarwidget = wibox.container.margin(calbg, 0, 0, 5, 5)
 lain.widget.calendar({
+    cal = "/usr/bin/ncal -b -3 -h",
     attach_to = { mytextclock, mytextcalendar },
+    followtag = true,
     notification_preset = {
         fg = "#FFFFFF",
         bg = theme.bg_normal,
         position = "bottom_right",
-        font = "Monospace 10"
+        font = "Terminess Powerline 10"
     }
 })
 
@@ -155,16 +158,16 @@ theme.mpd = lain.widget.mpd({
         if mpd_now.state == "play" then
             mpd_now.artist = mpd_now.artist:upper():gsub("&.-;", string.lower)
             mpd_now.title = mpd_now.title:upper():gsub("&.-;", string.lower)
-            widget:set_markup(markup.font("Roboto 4", " ")
+            widget:set_markup(markup.font("Tamsyn 4", " ")
                               .. markup.font(theme.taglist_font,
                               " " .. mpd_now.artist
                               .. " - " ..
-                              mpd_now.title .. "  ") .. markup.font("Roboto 5", " "))
+                              mpd_now.title .. "  ") .. markup.font("Tamsyn 5", " "))
             play_pause_icon:set_image(theme.pause)
         elseif mpd_now.state == "pause" then
-            widget:set_markup(markup.font("Roboto 4", " ") ..
+            widget:set_markup(markup.font("Tamsyn 4", " ") ..
                               markup.font(theme.taglist_font, " MPD PAUSED  ") ..
-                              markup.font("Roboto 5", " "))
+                              markup.font("Tamsyn 5", " "))
             play_pause_icon:set_image(theme.play)
         else
             widget:set_markup("")
@@ -180,27 +183,27 @@ function () awful.spawn(theme.musicplr) end)))
 prev_icon:buttons(awful.util.table.join(awful.button({}, 1,
 function ()
     awful.spawn.with_shell("mpc prev")
-    mpd.update()
+    theme.mpd.update()
 end)))
 next_icon:buttons(awful.util.table.join(awful.button({}, 1,
 function ()
     awful.spawn.with_shell("mpc next")
-    mpd.update()
+    theme.mpd.update()
 end)))
 stop_icon:buttons(awful.util.table.join(awful.button({}, 1,
 function ()
     play_pause_icon:set_image(theme.play)
     awful.spawn.with_shell("mpc stop")
-    mpd.update()
+    theme.mpd.update()
 end)))
 play_pause_icon:buttons(awful.util.table.join(awful.button({}, 1,
 function ()
     awful.spawn.with_shell("mpc toggle")
-    mpd.update()
+    theme.mpd.update()
 end)))
 
 -- Battery
---[[
+
 local bat = lain.widget.bat({
     settings = function()
         bat_header = " Bat "
@@ -211,17 +214,10 @@ local bat = lain.widget.bat({
         widget:set_markup(markup.font(theme.font, markup(blue, bat_header) .. bat_p))
     end
 })
---]]
---
---  fs
-theme.fs = lain.widget.fs({
-    options = "--exclude-type=tmpfs",
-    notification_preset = { bg = theme.bg_normal, font = "Monospace 9, " },
-})
 
 -- ALSA volume bar
 theme.volume = lain.widget.alsabar({
-    notification_preset = { font = "Monospace 9"},
+    notification_preset = { font = "Tamsyn 9"},
     --togglechannel = "IEC958,3",
     width = 80, height = 10, border_width = 0,
     colors = {
@@ -240,19 +236,48 @@ local cpu_icon = wibox.widget.imagebox(theme.cpu)
 local cpu = lain.widget.cpu({
     settings = function()
         widget:set_markup(space3 .. markup.font(theme.font, "CPU " .. cpu_now.usage
-                          .. "% ") .. markup.font("Roboto 5", " "))
+                          .. "% ") .. markup.font("Tamsyn 5", " "))
     end
 })
 local cpubg = wibox.container.background(cpu.widget, theme.bg_focus, gears.shape.rectangle)
 local cpuwidget = wibox.container.margin(cpubg, 0, 0, 5, 5)
+
+-- MEM
+local mem_icon = wibox.widget.imagebox(theme.mem)
+local mem = lain.widget.mem({
+    settings = function()
+        widget:set_markup(space3 .. markup.font(theme.font, "MEMORY " .. mem_now.used .. "M ") .. markup.font("Tamsyn 5", " "))
+    end
+})
+
+local membg = wibox.container.background(mem.widget, theme.bg_focus, gears.shape.rectangle)
+local memwidget = wibox.container.margin(membg, 0, 0, 5, 5)
+
+-- DISK
+local disk_icon = wibox.widget.imagebox(theme.hdd)
+local fsroothome = lain.widget.fs({
+    settings  = function()
+        local home_used = tonumber(fs_info["/home used_p"]) or 0
+        widget:set_markup(space3 .. markup.font(theme.font, "/: " .. fs_now.used .. "% | /home: " .. home_used .. "% ") .. markup.font("Tamsyn 5", " "))
+    end
+})
+
+theme.fs = lain.widget.fs({
+    options = "--exclude-type=tmpfs",
+    attach_to = fsroothomewidget,
+    notification_preset = { bg = theme.bg_normal, font = "Tamsyn 10" },
+})
+
+local fsroothomebg = wibox.container.background(fsroothome.widget, theme.bg_focus, gears.shape.rectangle)
+local fsroothomewidget = wibox.container.margin(fsroothomebg, 0, 0, 5, 5)
 
 -- Net
 local netdown_icon = wibox.widget.imagebox(theme.net_down)
 local netup_icon = wibox.widget.imagebox(theme.net_up)
 local net = lain.widget.net({
     settings = function()
-        widget:set_markup(markup.font("Roboto 1", " ") .. markup.font(theme.font, net_now.received .. " - "
-                          .. net_now.sent) .. markup.font("Roboto 2", " "))
+        widget:set_markup(markup.font("Tamsyn 1", " ") .. markup.font(theme.font, net_now.received .. " - "
+                          .. net_now.sent) .. markup.font("Tamsyn 2", " "))
     end
 })
 local netbg = wibox.container.background(net.widget, theme.bg_focus, gears.shape.rectangle)
@@ -261,7 +286,7 @@ local networkwidget = wibox.container.margin(netbg, 0, 0, 5, 5)
 -- Weather
 theme.weather = lain.widget.weather({
     city_id = 2643743, -- placeholder (London)
-    notification_preset = { font = "Monospace 9", position = "bottom_right" },
+    notification_preset = { font = "Tamsyn 9", position = "bottom_right" },
 })
 
 -- Launcher
@@ -269,7 +294,7 @@ local mylauncher = awful.widget.button({ image = theme.awesome_icon_launcher })
 mylauncher:connect_signal("button::press", function() awful.util.mymainmenu:toggle() end)
 
 -- Separators
-local first = wibox.widget.textbox('<span font="Roboto 7"> </span>')
+local first = wibox.widget.textbox('<span font="Tamsyn 7"> </span>')
 local spr_small = wibox.widget.imagebox(theme.spr_small)
 local spr_very_small = wibox.widget.imagebox(theme.spr_very_small)
 local spr_right = wibox.widget.imagebox(theme.spr_right)
@@ -337,7 +362,7 @@ function theme.at_screen_connect(s)
             layout = wibox.layout.fixed.horizontal,
             wibox.widget.systray(),
             --mail.widget,
-            --bat.widget,
+            bat.widget,
             spr_right,
             musicwidget,
             bar,
@@ -375,6 +400,10 @@ function theme.at_screen_connect(s)
             bottom_bar,
             cpu_icon,
             cpuwidget,
+            mem_icon,
+            memwidget,
+            disk_icon,
+            fsroothomewidget,
             bottom_bar,
             calendar_icon,
             calendarwidget,
